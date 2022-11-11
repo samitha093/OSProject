@@ -4,7 +4,7 @@
 #include <errno.h> //storeerror number (errno)
 #include <fcntl.h> //Permisssions (0644)
 #include <string.h> // controll string io
-#include <stdbool.h>  
+#include <stdbool.h>  //use for get bool data type
 
 
 typedef struct {
@@ -59,8 +59,11 @@ void greeting();
 void dataInput();
 void dataEdit();
 void dataDelete();
+void dataView();
 void menuSelector();
 bool isCorrectFormat();
+void printDataRecord(student_marks record);
+bool saveData ();
 
 int main(){
     //read data and load in to array
@@ -81,7 +84,7 @@ int main(){
 }
 
 void greeting(){
-    char menu[] = "---------------use below guided codes--------------\ncode \tDiscription \n01\tcreate a new student data record\n02\tUpdate a student data record\n03\tDelete a student data record\n---------------------------------------------------\n";
+    char menu[] = "---------------use below guided codes--------------\ncode \tDiscription \n01\tcreate a new student data record\n02\tUpdate a student data record\n03\tDelete a student data record\n04\tstudent data record list\n---------------------------------------------------\n";
     printf("%s",menu);
 }
 
@@ -104,6 +107,19 @@ int readData(){
     close(fd);
 }
 
+void dataView(){
+    int fd;
+    fd = open("studentData.txt", O_RDONLY,0644);
+    student_marks tempStudent2[arraySize];
+    lseek(fd,0,SEEK_SET);
+    read(fd,&tempStudent2, sizeof(tempStudent2));
+    for(int z = 0; z <arraySize-1 ; z++){
+        printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",z+1,tempStudent2[z].student_index,tempStudent2[z].assgnmt01_marks,tempStudent2[z].assgnmt02_marks,tempStudent2[z].project_marks,tempStudent2[z].finalExam_marks);
+    }
+
+    close(fd);
+}
+
 void menuSelector(){
     greeting();
     printf("Select Menu id : ");
@@ -117,6 +133,9 @@ void menuSelector(){
             break;
         case 3:
             dataDelete();
+            break;
+        case 4:
+            dataView();
             break;
         default:
             printf("\x1b["BACKGROUND_COL_RED"m");
@@ -136,6 +155,33 @@ bool isExisting(){
     return false;
 }
 
+void printDataRecord(student_marks record){
+    printf("\x1b["BACKGROUND_COL_YELLOW"m");
+    printf("-------------------%s-------------------",record.student_index);
+    printf("\x1b[" GEN_FORMAT_RESET "m\n");
+    printf(" marks for Assigment 1 : %.2f \n",record.assgnmt01_marks);
+    printf(" marks for Assigment 2 : %.2f \n",record.assgnmt02_marks);
+    printf(" marks for Project     : %.2f \n",record.project_marks);
+    printf(" marks for Final Exam  : %.2f \n",record.finalExam_marks);
+    printf("\x1b["FOREGROUND_COL_YELLOW "m");
+    printf("-------------------Saved data-------------------");
+    printf("\x1b[" GEN_FORMAT_RESET "m\n");
+}
+
+bool saveData (){
+    int fd;
+    fd = open("studentData.txt", O_RDWR | O_CREAT | O_TRUNC,0644);
+    for(int j = 0; j < listSize; j++){
+        int errorWrite = write(fd,&studentList[j],sizeof(studentList[0])); 
+        if(errorWrite == -1){
+            perror("Wrting error : ");
+            printf("Error No: %d ",errno);
+            exit(1);
+        }
+    }
+    close(fd);
+}
+
 void dataInput(){
     //create new student data record
     printf("Enter the Register Number (Ex : EG/XXXX/XXXX) : ");
@@ -145,6 +191,27 @@ void dataInput(){
         printf(" %s is already exist, please Enter new reg. Number ",regNumber);
         printf("\x1b[" GEN_FORMAT_RESET "m\n");
         dataInput();
+    }
+    //get marks details
+    student_marks newRecord;
+    strcpy(newRecord.student_index,regNumber);
+    printf("Enter the Assigment 1 marks (15 max): ");
+    scanf("%f",&newRecord.assgnmt01_marks);
+    printf("Enter the Assigment 2 marks (15 max): ");
+    scanf("%f",&newRecord.assgnmt02_marks);
+    printf("Enter the Project marks (15 max)    : ");
+    scanf("%f",&newRecord.project_marks);
+    printf("Enter the final exam marks (15 max) : ");
+    scanf("%f",&newRecord.finalExam_marks);
+    //print saved data
+    if(arraySize < 100){
+        studentList[arraySize] = newRecord;
+        saveData();
+        printDataRecord(newRecord);
+    }else{
+        printf("\x1b["BACKGROUND_COL_RED"m");
+        printf(" Your array is Full ");
+        printf("\x1b[" GEN_FORMAT_RESET "m\n");
     }
 }
 
