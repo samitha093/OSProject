@@ -64,6 +64,7 @@ void menuSelector();
 bool isCorrectFormat();
 void printDataRecord(student_marks record);
 bool saveData ();
+int getDataRecord();
 
 int main(){
     //read data and load in to array
@@ -108,16 +109,10 @@ int readData(){
 }
 
 void dataView(){
-    int fd;
-    fd = open("studentData.txt", O_RDONLY,0644);
-    student_marks tempStudent2[arraySize];
-    lseek(fd,0,SEEK_SET);
-    read(fd,&tempStudent2, sizeof(tempStudent2));
-    for(int z = 0; z <arraySize-1 ; z++){
-        printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",z+1,tempStudent2[z].student_index,tempStudent2[z].assgnmt01_marks,tempStudent2[z].assgnmt02_marks,tempStudent2[z].project_marks,tempStudent2[z].finalExam_marks);
+    readData();
+    for(int i = 0;i<arraySize;i++){
+       printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",i+1,studentList[i].student_index,studentList[i].assgnmt01_marks,studentList[i].assgnmt02_marks,studentList[i].project_marks,studentList[i].finalExam_marks); 
     }
-
-    close(fd);
 }
 
 void menuSelector(){
@@ -171,8 +166,8 @@ void printDataRecord(student_marks record){
 bool saveData (){
     int fd;
     fd = open("studentData.txt", O_RDWR | O_CREAT | O_TRUNC,0644);
-    for(int j = 0; j < listSize; j++){
-        int errorWrite = write(fd,&studentList[j],sizeof(studentList[0])); 
+    for(int j = 0; j < arraySize; j++){
+        int errorWrite = write(fd,&studentList[j],sizeof(student_marks)); 
         if(errorWrite == -1){
             perror("Wrting error : ");
             printf("Error No: %d ",errno);
@@ -183,14 +178,18 @@ bool saveData (){
 }
 
 void dataInput(){
+    //refresh existing data
+    readData();
     //create new student data record
     printf("Enter the Register Number (Ex : EG/XXXX/XXXX) : ");
     scanf("%s",regNumber);
+    //check duplication reg. numbers
     if(isExisting()){
         printf("\x1b["BACKGROUND_COL_RED"m");
         printf(" %s is already exist, please Enter new reg. Number ",regNumber);
         printf("\x1b[" GEN_FORMAT_RESET "m\n");
         dataInput();
+        exit(0);
     }
     //get marks details
     student_marks newRecord;
@@ -206,6 +205,7 @@ void dataInput(){
     //print saved data
     if(arraySize < 100){
         studentList[arraySize] = newRecord;
+        arraySize +=1;
         saveData();
         printDataRecord(newRecord);
     }else{
@@ -215,8 +215,20 @@ void dataInput(){
     }
 }
 
+int getDataRecord(){
+    for(int i = 0 ; i < arraySize ; i++){
+        if(strcmp(studentList[i].student_index,regNumber) == 0){
+            return i;
+            break;
+        }
+    }
+}
+
 void dataEdit(){
-    //create new student data record
+    int dataId;
+    //refresh existing data
+    readData();
+    //Check stuident id
     printf("Enter the Register Number (Ex : EG/XXXX/XXXX) : ");
     scanf("%s",regNumber);
     if(!isExisting()){
@@ -224,10 +236,33 @@ void dataEdit(){
         printf(" %s is not existing, please Enter new reg. Number ",regNumber);
         printf("\x1b[" GEN_FORMAT_RESET "m\n");
         dataEdit();
+    }else{
+        dataId = getDataRecord();
     }
+    //view old details
+    printDataRecord(studentList[dataId]);
+    //collect new data 
+    student_marks newRecord;
+    strcpy(newRecord.student_index,regNumber);
+    printf("Enter the Assigment 1 marks (15 max): ");
+    scanf("%f",&newRecord.assgnmt01_marks);
+    printf("Enter the Assigment 2 marks (15 max): ");
+    scanf("%f",&newRecord.assgnmt02_marks);
+    printf("Enter the Project marks (15 max)    : ");
+    scanf("%f",&newRecord.project_marks);
+    printf("Enter the final exam marks (15 max) : ");
+    scanf("%f",&newRecord.finalExam_marks);
+    //replace data record
+    studentList[dataId] = newRecord;
+    saveData();
+    printDataRecord(newRecord);
+    exit(0);
 }
 
 void dataDelete(){
+    int dataId;
+    //refresh existing data
+    readData();
     //create new student data record
     printf("Enter the Register Number (Ex : EG/XXXX/XXXX) : ");
     scanf("%s",regNumber);
@@ -236,5 +271,24 @@ void dataDelete(){
         printf(" %s is not existing, please Enter new reg. Number ",regNumber);
         printf("\x1b[" GEN_FORMAT_RESET "m\n");
         dataDelete();
+    }else{
+        dataId = getDataRecord();
     }
+    //view Selected dataset
+    printDataRecord(studentList[dataId]);
+    //conform msg
+    char command[20];
+    printf("\x1b["BACKGROUND_COL_RED"m");
+    printf(" Do you need delete this data record ? (YES/NO) :");
+    printf("\x1b[" GEN_FORMAT_RESET "m\n");
+    scanf("%s",command);
+        if(strcmp(command,"YES") == 0 | strcmp(command,"yes") == 0 ){
+            arraySize -= 1;
+            studentList[dataId] = studentList[arraySize];
+            saveData();
+            printf("\x1b["BACKGROUND_COL_BLUE "m");
+            printf(" %s Data set  deleted   ",regNumber);
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+        }
+    exit(0);
 }
