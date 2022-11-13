@@ -4,7 +4,7 @@
 #include <errno.h> //storeerror number (errno)
 #include <fcntl.h> //Permisssions (0644)
 #include <string.h> // controll string io
-#include <stdbool.h>  //use for get bool data type
+#include <stdbool.h> //use for get bool data type
 
 
 typedef struct {
