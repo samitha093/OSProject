@@ -5,6 +5,8 @@
 #include <fcntl.h> //Permisssions (0644)
 #include <string.h> // controll string io
 #include <stdbool.h>  //use for get bool data type
+#include <sys/shm.h> //create shared memory
+#include <sys/ipc.h> //inter process communication
 
 typedef struct {
 char student_index[20]; //EG/XXXX/XXXX
@@ -54,6 +56,21 @@ student_marks studentList[listSize];
 int readData();
 
 int main(){
+    //create shared memory
+    key_t ky = ftok("myFile",78);
+    if (ky == -1){
+        perror("ftok error: ");
+        printf("Error No: %d\n",errno);
+        exit(1);
+    }
+
+    int SMID = shmget(ky,4096,IPC_CREAT|0666);
+    if (SMID == -1){
+        perror("shmget error: ");
+        printf("Error No: %d\n",errno);
+        exit(1);
+    }
+    //create parelal process
     arraySize = readData();
     printf("\x1b["BACKGROUND_COL_BLUE "m");
     printf(" there are %d records in here ",arraySize);
