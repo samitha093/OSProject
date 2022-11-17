@@ -7,6 +7,7 @@
 #include <stdbool.h>  //use for get bool data type
 #include <sys/shm.h> //create shared memory
 #include <sys/ipc.h> //inter process communication
+#include <sys/wait.h> // use waitpid()
 
 typedef struct {
 char student_index[20]; //EG/XXXX/XXXX
@@ -51,6 +52,8 @@ int arraySize;
 
 //global variable
 student_marks studentList[listSize];
+int SMID;
+
 
 //init functions
 int readData();
@@ -64,7 +67,7 @@ int main(){
         exit(1);
     }
 
-    int SMID = shmget(ky,4096,IPC_CREAT|0666);
+    SMID = shmget(ky,4096,IPC_CREAT|0666);
     if (SMID == -1){
         perror("shmget error: ");
         printf("Error No: %d\n",errno);
@@ -75,35 +78,134 @@ int main(){
     printf("\x1b["BACKGROUND_COL_BLUE "m");
     printf(" there are %d records in here ",arraySize);
     printf("\x1b["GEN_FORMAT_RESET"m\n");
+    //Create chield C1
     pid_t PID = fork();
     if (PID == -1){
         perror("C1 fork error: ");
         printf("Error No: %d\n",errno);
         exit(0);
     }else if(PID == 0){
-        // "C!" chield
+        // Creating child s --CC1 to CC3
         pid_t PID1 = fork();
-        pid_t PID2 = fork();
-        pid_t PID3 = fork();
-        if(PID1 == -1 | PID2 == -1 | PID3 == -1){
-            perror("CC fork error: ");
+        if (PID1 == -1){
+            perror("CC1 fork error: ");
             printf("Error No: %d\n",errno);
             exit(0);
         }else if(PID1 == 0){
-            //"CC1" chield
-
-        }else if (PID2 == 0){
-            //"CCI2" chield
-
-        }else if(PID3 == 0){
-            //"CCI3" chield
-
+            printf("CC1 child Process started, PID is %d & PPID is %d\n",getpid(),getppid());
+            //shared memory attached
+            char * childPtr = (char *)shmat(SMID,NULL,SHM_R|SHM_W);
+            if(childPtr == (void *)-1){
+                perror("shmgat error : ");
+                printf("ERROR NO : %d \n",errno);
+                exit(1); 
+            }
+            //CC1 process
+            printf("CC1 done \n");
+            //share memory deatach
+            if (shmdt(childPtr) == -1){
+                perror("child shmdt error: ");
+                printf("Error No: %d\n",errno);
+                exit(0);
+            }
         }else{
-            //"C1" chield
+            pid_t PID2 = fork();
+            if (PID2 == -1){
+                perror("CC2 fork error: ");
+                printf("Error No: %d\n",errno);
+                exit(0);
+            }else if(PID2 == 0){
+                printf("CC2 child Process started, PID is %d & PPID is %d\n",getpid(),getppid());
+                //shared memory attached
+                char * childPtr = (char *)shmat(SMID,NULL,SHM_R|SHM_W);
+                if(childPtr == (void *)-1){
+                    perror("shmgat error : ");
+                    printf("ERROR NO : %d \n",errno);
+                    exit(1); 
+                }
+                //CC2 process
+                sleep(1);
+                printf("CC2 done \n");
+                //share memory deatach
+                if (shmdt(childPtr) == -1){
+                    perror("child shmdt error: ");
+                    printf("Error No: %d\n",errno);
+                    exit(0);
+                }
+            }else{
+                pid_t PID3 = fork();
+                if (PID3 == -1){
+                    perror("CC3 fork error: ");
+                    printf("Error No: %d\n",errno);
+                    exit(0);
+                }else if(PID3 == 0){
+                    printf("CC3 child Process started, PID is %d & PPID is %d\n",getpid(),getppid());
+                    //shared memory attached
+                    char * childPtr = (char *)shmat(SMID,NULL,SHM_R|SHM_W);
+                    if(childPtr == (void *)-1){
+                        perror("shmgat error : ");
+                        printf("ERROR NO : %d \n",errno);
+                        exit(1); 
+                    }
+                    //CC3 process
+                    printf("CC3 done \n");
+                    //share memory deatach
+                    if (shmdt(childPtr) == -1){
+                        perror("child shmdt error: ");
+                        printf("Error No: %d\n",errno);
+                        exit(0);
+                    }
+                } else{
+                    // child for P & Parent for CC1 to CC3
+                    printf("C1 child Process started, PID is %d & PPID is %d\n",getpid(),getppid());
+                    //shared memory attached
+                    char * childPtr = (char *)shmat(SMID,NULL,SHM_R|SHM_W);
+                    if(childPtr == (void *)-1){
+                        perror("shmgat error : ");
+                        printf("ERROR NO : %d \n",errno);
+                        exit(1); 
+                    }
+                    //C1 process
+                    printf("C1 done\n");
+                    //share memory deatach
+                    if (shmdt(childPtr) == -1){
+                        perror("child shmdt error: ");
+                        printf("Error No: %d\n",errno);
+                        exit(0);
+                    }
+                }
+            }
         }
-
     }else{
-        //"P" parent process
+        printf("Parent Process started, PID is %d \n",getpid());
+        //shared memory attached
+        char * childPtr = (char *)shmat(SMID,NULL,SHM_R|SHM_W);
+        if(childPtr == (void *)-1){
+            perror("shmgat error : ");
+            printf("ERROR NO : %d \n",errno);
+            exit(1); 
+        }
+        //parent process
+        //wait for end in chield process
+        pid_t wpidRet = waitpid(PID,NULL,0);
+        if (wpidRet == -1){
+            perror("Parent waitpid error: ");
+            printf("Error No: %d\n",errno);
+            exit(0);
+        }
+        printf("Parent done \n");
+        //share memory deatach
+        if (shmdt(childPtr) == -1){
+            perror("child shmdt error: ");
+            printf("Error No: %d\n",errno);
+            exit(0);
+        }
+        //delete shared memory
+        if (shmctl(SMID,IPC_RMID,NULL) == -1){
+            perror("parent shmctl error: ");
+            printf("Error No: %d\n",errno);
+            exit(0);
+        }
     }
     return 0;
 }
