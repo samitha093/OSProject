@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define listSize 90
+#define listSize 100
 
 typedef struct {
 char student_index[20]; //EG/XXXX/XXXX
@@ -66,12 +66,13 @@ student_marks* studentList(){
     for(int i = 0; i<listSize; i++){
         student_marks student = randomStudent();
         markList[i] = student;
-        printf("%d\t%s\t%f\t%f\t%f\t%f\n",i+1,student.student_index,student.assgnmt01_marks,student.assgnmt02_marks,student.project_marks,student.finalExam_marks);
+        //printf("%d\t%s\t%f\t%f\t%f\t%f\n",i+1,student.student_index,student.assgnmt01_marks,student.assgnmt02_marks,student.project_marks,student.finalExam_marks);
     }
     return markList;
 }
 
 void main(){
+    srand(time(0));
     for(int a = 0;a<listSize;a++){
         regNumberList[a] = 0;
     }
@@ -86,18 +87,17 @@ void main(){
             printf("Error No: %d ",errno);
             exit(1);
         }
-        printf("Saved : %s\n",(tempStudent.student_index));
+        //printf("Saved : %s\n",(tempStudent.student_index));
     }
     close(fd);
     //read
-    int fd2;
-    fd2 = open("studentData.txt", O_RDONLY,0644);
+    int fd2 = open("studentData.txt", O_RDONLY,0644);
     student_marks tempStudent2[100];
     lseek(fd2,0,SEEK_SET);
     read(fd2,&tempStudent2, sizeof(tempStudent2));
-    for(int z = 0; z <listSize ; z++){
-        printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",z+1,tempStudent2[z].student_index,tempStudent2[z].assgnmt01_marks,tempStudent2[z].assgnmt02_marks,tempStudent2[z].project_marks,tempStudent2[z].finalExam_marks);
-    }
+    // for(int z = 0; z <listSize ; z++){
+    //     printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",z+1,tempStudent2[z].student_index,tempStudent2[z].assgnmt01_marks,tempStudent2[z].assgnmt02_marks,tempStudent2[z].project_marks,tempStudent2[z].finalExam_marks);
+    // }
 
     close(fd2);
 }
