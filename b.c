@@ -74,30 +74,20 @@ int main(){
         exit(1);
     }
     lseek(fd,-sizeof(LastStudent),SEEK_END);
-    int count;
-    while(1){
-        count = read(fd,&LastStudent, sizeof(LastStudent));
-        if (count < 0){
+    int count = read(fd,&LastStudent, sizeof(LastStudent));
+    if (count < 0){
         printf("Error Number: %d\n",errno);
         perror("Read Error: ");
-        break;
         exit(1);
-    }
     }
     lseek(fd,0,SEEK_SET);
     for(int i = 0; i>=0;i++){
-        int count2;
-        while(1){
-            read(fd,&tempStudentList, sizeof(tempStudentList));
-            if (count < 0){
-                printf("Error Number: %d\n",errno);
-                perror("Read Error: ");
-                break;
-                exit(1);
-            }
-        }
-        
-        //printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",i+1,tempStudentList.student_index,tempStudentList.assgnmt01_marks,tempStudentList.assgnmt02_marks,tempStudentList.project_marks,tempStudentList.finalExam_marks);
+        int count2 = read(fd,&tempStudentList, sizeof(tempStudentList));
+        if (count2 < 0){
+            printf("Error Number: %d\n",errno);
+            perror("Read Error: ");
+            exit(1);
+        }       
         studentList[i] = tempStudentList;
         if(strcmp(tempStudentList.student_index,LastStudent.student_index) == 0){
             size = i + 1;
@@ -239,7 +229,6 @@ int main(){
                         printf("Error No: %d\n",errno);
                         exit(0);
                     } 
-                    printf("C1 : No of student have below 17.5%% marks = %d \n",noofBelowers); 
                     childPtr[3] = noofBelowers; 
                     printf("C1 : calculated No. of students below 17.5%% and Exit\n");
                     //share memory deatach

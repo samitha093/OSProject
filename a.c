@@ -116,11 +116,20 @@ int readData(){
     int fd,size;
     fd = open("studentData.txt", O_RDONLY,0644);
     lseek(fd,-sizeof(LastStudent),SEEK_END);
-    read(fd,&LastStudent, sizeof(LastStudent));//Error handle
+    int count = read(fd,&LastStudent, sizeof(LastStudent));
+    if (count < 0){
+        printf("Error Number: %d\n",errno);
+        perror("Read Error: ");
+        exit(1);
+    }
     lseek(fd,0,SEEK_SET);
     for(int i = 0; i>=0;i++){
-        read(fd,&tempStudentList, sizeof(tempStudentList));//Error handle
-        //printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",i+1,tempStudentList.student_index,tempStudentList.assgnmt01_marks,tempStudentList.assgnmt02_marks,tempStudentList.project_marks,tempStudentList.finalExam_marks);
+        int count2 = read(fd,&tempStudentList, sizeof(tempStudentList));
+        if (count2 < 0){
+            printf("Error Number: %d\n",errno);
+            perror("Read Error: ");
+            exit(1);
+        }
         studentList[i] = tempStudentList;
         if(strcmp(tempStudentList.student_index,LastStudent.student_index) == 0){
             return i+1;
@@ -221,6 +230,12 @@ void dataInput(){
     //create new student data record
     printf("Enter the Register Number (Ex : EG/XXXX/XXXX) : ");
     scanf("%s",regNumber);
+    if(!isCorrecrRegNum(regNumber)){
+        printf("\x1b["BACKGROUND_COL_RED"m");
+        printf(" Please enter correct register number ");
+        printf("\x1b[" GEN_FORMAT_RESET "m\n");
+        exit(1);
+    }
     //check duplication reg. numbers
     if(isExisting()){
         printf("\x1b["BACKGROUND_COL_RED"m");
@@ -234,36 +249,60 @@ void dataInput(){
     strcpy(newRecord.student_index,regNumber);
     printf("Enter the Assigment 1 marks (15 max): ");
     int error1 = scanf("%f",&newRecord.assgnmt01_marks);
-    if(!(error1 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
+        if(!(error1 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.assgnmt01_marks > 15 | newRecord.assgnmt01_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 15 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
     printf("Enter the Assigment 2 marks (15 max): ");
     int error2 = scanf("%f",&newRecord.assgnmt02_marks);
-    if(!(error2 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
-    printf("Enter the Project marks (15 max)    : ");
+        if(!(error2 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.assgnmt02_marks > 15 | newRecord.assgnmt02_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 15 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
+    printf("Enter the Project marks (20 max)    : ");
     int error3 = scanf("%f",&newRecord.project_marks);
-    if(!(error3 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
-    printf("Enter the final exam marks (15 max) : ");
+        if(!(error3 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.project_marks > 20 | newRecord.project_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 20 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
+    printf("Enter the final exam marks (50 max) : ");
     int error4 = scanf("%f",&newRecord.finalExam_marks);
-    if(!(error4 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
+        if(!(error4 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.finalExam_marks > 50 | newRecord.finalExam_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 50 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
     //print saved data
     if(arraySize < 100){
         studentList[arraySize] = newRecord;
@@ -313,36 +352,60 @@ void dataEdit(){
     strcpy(newRecord.student_index,regNumber);
     printf("Enter the Assigment 1 marks (15 max): ");
     int error1 = scanf("%f",&newRecord.assgnmt01_marks);
-    if(!(error1 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
+        if(!(error1 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.assgnmt01_marks > 15 | newRecord.assgnmt01_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 15 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
     printf("Enter the Assigment 2 marks (15 max): ");
     int error2 = scanf("%f",&newRecord.assgnmt02_marks);
-    if(!(error2 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
-    printf("Enter the Project marks (15 max)    : ");
+        if(!(error2 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.assgnmt02_marks > 15 | newRecord.assgnmt02_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 15 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
+    printf("Enter the Project marks (20 max)    : ");
     int error3 = scanf("%f",&newRecord.project_marks);
-    if(!(error3 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
-    printf("Enter the final exam marks (15 max) : ");
+        if(!(error3 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.project_marks > 20 | newRecord.project_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 20 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
+    printf("Enter the final exam marks (50 max) : ");
     int error4 = scanf("%f",&newRecord.finalExam_marks);
-    if(!(error4 > 0 )){
-        printf("\x1b["BACKGROUND_COL_RED"m");
-        printf(" you can use only integer values for input marks ");
-        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-        exit(0);
-    }
+        if(!(error4 > 0 )){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only integer values for input marks ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0);
+        }
+        if(newRecord.finalExam_marks > 50 | newRecord.finalExam_marks < 0){
+            printf("\x1b["BACKGROUND_COL_RED"m");
+            printf(" you can use only numbers between 0 to 50 ");
+            printf("\x1b[" GEN_FORMAT_RESET "m\n");
+            exit(0); 
+        }
     //replace data record
     studentList[dataId] = newRecord;
     saveData();
@@ -391,15 +454,15 @@ void dataDelete(){
 void dataListInput(){
         student_marks newRecord;
         for(int i=0;i<100;i++){
-            printf("------------------Student data record %d started-----------------\n",i+1);
+            printf("------------------Student data record %d started-----------------\n",arraySize+1);
                 printf("Enter the Register Number (Ex : EG/XXXX/XXXX) : ");
                 scanf("%s",regNumber);
-                    if(!isCorrecrRegNum(regNumber)){
-                        printf("\x1b["BACKGROUND_COL_RED"m");
-                        printf(" Please enter correct register number ");
-                        printf("\x1b[" GEN_FORMAT_RESET "m\n");
-                        exit(1);
-                    }
+                if(!isCorrecrRegNum(regNumber)){
+                    printf("\x1b["BACKGROUND_COL_RED"m");
+                    printf(" Please enter correct register number ");
+                    printf("\x1b[" GEN_FORMAT_RESET "m\n");
+                    exit(1);
+                }
                 if(isExisting()){
                     printf("\x1b["BACKGROUND_COL_RED"m");
                     printf(" %s is already exist, please Enter new reg. Number ",regNumber);
@@ -416,6 +479,13 @@ void dataListInput(){
                         printf("\x1b[" GEN_FORMAT_RESET "m\n");
                         exit(0);
                     }
+                    if(newRecord.assgnmt01_marks > 15 | newRecord.assgnmt01_marks < 0){
+                        printf("\x1b["BACKGROUND_COL_RED"m");
+                        printf(" you can use only numbers between 0 to 15 ");
+                        printf("\x1b[" GEN_FORMAT_RESET "m\n");
+                        exit(0); 
+                    }
+                
                 printf("Enter the Assigment 2 marks (15 max): ");
                 int error2 = scanf("%f",&newRecord.assgnmt02_marks);
                     if(!(error2 > 0 )){
@@ -424,7 +494,13 @@ void dataListInput(){
                         printf("\x1b[" GEN_FORMAT_RESET "m\n");
                         exit(0);
                     }
-                printf("Enter the Project marks (15 max)    : ");
+                    if(newRecord.assgnmt02_marks > 15 | newRecord.assgnmt02_marks < 0){
+                        printf("\x1b["BACKGROUND_COL_RED"m");
+                        printf(" you can use only numbers between 0 to 15 ");
+                        printf("\x1b[" GEN_FORMAT_RESET "m\n");
+                        exit(0); 
+                    }
+                printf("Enter the Project marks (20 max)    : ");
                 int error3 = scanf("%f",&newRecord.project_marks);
                     if(!(error3 > 0 )){
                         printf("\x1b["BACKGROUND_COL_RED"m");
@@ -432,7 +508,13 @@ void dataListInput(){
                         printf("\x1b[" GEN_FORMAT_RESET "m\n");
                         exit(0);
                     }
-                printf("Enter the final exam marks (15 max) : ");
+                    if(newRecord.project_marks > 20 | newRecord.project_marks < 0){
+                        printf("\x1b["BACKGROUND_COL_RED"m");
+                        printf(" you can use only numbers between 0 to 20 ");
+                        printf("\x1b[" GEN_FORMAT_RESET "m\n");
+                        exit(0); 
+                    }
+                printf("Enter the final exam marks (50 max) : ");
                 int error4 = scanf("%f",&newRecord.finalExam_marks);
                     if(!(error4 > 0 )){
                         printf("\x1b["BACKGROUND_COL_RED"m");
@@ -440,8 +522,14 @@ void dataListInput(){
                         printf("\x1b[" GEN_FORMAT_RESET "m\n");
                         exit(0);
                     }
+                    if(newRecord.project_marks > 50 | newRecord.project_marks < 0){
+                        printf("\x1b["BACKGROUND_COL_RED"m");
+                        printf(" you can use only numbers between 0 to 50 ");
+                        printf("\x1b[" GEN_FORMAT_RESET "m\n");
+                        exit(0); 
+                    }
 
-            printf("--------------------Student data record %d End------------------\n",i+1);
+            printf("--------------------Student data record %d End------------------\n",arraySize+1);
                     studentList[arraySize] = newRecord;
                     arraySize +=1;
         }

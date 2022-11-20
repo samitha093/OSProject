@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define listSize 100
+#define listSize 95
 
 typedef struct {
 char student_index[20]; //EG/XXXX/XXXX
@@ -87,17 +87,7 @@ void main(){
             printf("Error No: %d ",errno);
             exit(1);
         }
-        //printf("Saved : %s\n",(tempStudent.student_index));
     }
     close(fd);
-    //read
-    int fd2 = open("studentData.txt", O_RDONLY,0644);
-    student_marks tempStudent2[100];
-    lseek(fd2,0,SEEK_SET);
-    read(fd2,&tempStudent2, sizeof(tempStudent2));
-    // for(int z = 0; z <listSize ; z++){
-    //     printf(" Saved data : %d\t%s\t%f\t%f\t%f\t%f\n",z+1,tempStudent2[z].student_index,tempStudent2[z].assgnmt01_marks,tempStudent2[z].assgnmt02_marks,tempStudent2[z].project_marks,tempStudent2[z].finalExam_marks);
-    // }
-
-    close(fd2);
+    printf("Sucessfully generated 100 student records\n.");
 }
